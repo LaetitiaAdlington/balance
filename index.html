@@ -6,9 +6,7 @@
   <title>Balance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sanchez&display=swap" rel="stylesheet">
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sanchez&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#fbf9f4;
@@ -30,7 +28,7 @@
     html,body{height:100%;}
     body{
       margin:0;
-      font-family:"Satoshi",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
       background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;
     }
     .app{display:flex;flex-direction:column;height:100%;max-width:460px;margin:0 auto;background:var(--bg);}
@@ -67,7 +65,7 @@
     /* start screen */
     .start-center{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:26px;}
     .mascot{width:118px;height:118px;margin-bottom:26px;}
-    .start-center h2{font-size:24px;}
+    .start-center h2{font-size:24px;margin-bottom:4px;}
     .start-center .subtitle{margin-bottom:24px;}
     .field-error{color:var(--contre);font-size:14px;font-weight:600;text-align:center;margin-top:14px;min-height:18px;}
     textarea,input.deci{
@@ -367,7 +365,15 @@
         back.addEventListener("click",goPrev); foot.appendChild(back);
         const nextLabel = stage==="result" ? "Terminer" : 'Suivant <span style="display:inline-flex">'+IC.arrow+'</span>';
         const nx=$("button","btn btn-primary",nextLabel);
-        nx.addEventListener("click",goNext); foot.appendChild(nx);
+        nx.addEventListener("click",()=>{
+          if(stage==="list" && !named(sideList(d,cur.side)).length){
+            const e=document.getElementById("list-error");
+            if(e) e.textContent = cur.side==="pro" ? "Ajoute au moins un avantage." : "Ajoute au moins un inconvénient.";
+            return;
+          }
+          goNext();
+        });
+        foot.appendChild(nx);
       }
     }
 
@@ -397,7 +403,7 @@
         row.appendChild($("span","li-ic", side==="pro"?IC.sparkle:IC.flag));
         const inp=document.createElement("input"); inp.type="text"; inp.value=it.text;
         inp.placeholder=side==="pro"?"Un avantage…":"Un inconvénient…";
-        inp.addEventListener("input",e=>updateText(side,it.id,e.target.value));
+        inp.addEventListener("input",e=>{ updateText(side,it.id,e.target.value); const le=document.getElementById("list-error"); if(le) le.textContent=""; });
         row.appendChild(inp);
         const del=$("button","li-del",IC.close); del.addEventListener("click",()=>deleteItem(side,it.id));
         row.appendChild(del);
@@ -407,6 +413,7 @@
       const add=$("button","add-item", side==="pro"?"+ ajouter un avantage":"+ ajouter un inconvénient");
       add.addEventListener("click",()=>addItem(side));
       wrap.appendChild(add);
+      const err=$("p","field-error"); err.id="list-error"; wrap.appendChild(err);
       return wrap;
     }
 
