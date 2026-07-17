@@ -33,7 +33,7 @@
     .app {
       display: flex;
       flex-direction: column;
-      min-height: 100%;
+      height: 100%;
       max-width: 460px;
       margin: 0 auto;
       background: var(--bg);
@@ -61,7 +61,7 @@
     .progress-track .seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background .2s; }
     .progress-track .seg.done { background: var(--accent); }
 
-    .content { flex: 1; padding: 24px 20px 20px; overflow-y: auto; }
+    .content { flex: 1; min-height: 0; padding: 24px 20px 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
     .view { display: none; }
     .view.active { display: block; }
@@ -129,8 +129,6 @@
     .list-item input:focus { outline: none; }
     .del-btn { flex: 0 0 auto; width: 40px; height: 40px; border: none; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; border-radius: 8px; }
     .del-btn:active { background: #f0f0f0; color: var(--con); }
-    .add-item { width: 100%; border: 1.5px dashed var(--border); border-radius: var(--radius); background: none; padding: 14px; font-size: 15px; color: var(--muted); cursor: pointer; font-family: inherit; font-weight: 500; }
-    .add-item:active { border-color: #9a9a9a; color: var(--text); }
     .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 20px 0; font-style: italic; }
 
     /* ---- Pondération (écrans 3 & 5) ---- */
@@ -164,8 +162,24 @@
     .bd-row { display: flex; justify-content: space-between; font-size: 14px; padding: 7px 0; border-bottom: 1px solid var(--border); }
     .bd-row .bd-score { font-weight: 600; color: var(--muted); }
 
-    /* ---- Footer ---- */
-    .footer { display: flex; gap: 10px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--border); position: sticky; bottom: 0; }
+    /* ---- Barre inférieure (composer + navigation), fixe au-dessus du clavier ---- */
+    .bottombar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; }
+    .bottombar-inner { max-width: 460px; margin: 0 auto; background: var(--bg); border-top: 1px solid var(--border); }
+
+    .composer { display: flex; gap: 8px; padding: 12px 20px 0; }
+    .composer input {
+      flex: 1; height: 52px; border: 1px solid var(--border); border-radius: 12px;
+      padding: 0 16px; font-size: 16px; background: var(--surface); color: var(--text);
+    }
+    .composer input:focus { outline: none; border-color: #9a9a9a; }
+    .composer-send {
+      flex: 0 0 auto; width: 52px; height: 52px; border: none; border-radius: 12px;
+      background: var(--accent); color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .composer-send:active { background: #333; }
+
+    .footer { display: flex; gap: 10px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); }
     .btn { border: none; border-radius: var(--radius); padding: 15px 18px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-primary { flex: 1; background: var(--accent); color: #fff; }
     .btn-primary:active { background: #333; }
@@ -221,7 +235,6 @@
           <h2>Les avantages</h2>
           <p class="subtitle">Listez tout ce qui plaide en faveur de cette décision.</p>
           <div class="list" id="pro-list"></div>
-          <button class="add-item" data-add="pro">+ Ajouter un avantage</button>
         </section>
 
         <!-- 3. Pondération avantages -->
@@ -239,7 +252,6 @@
           <h2>Les inconvénients</h2>
           <p class="subtitle">Listez tout ce qui plaide contre cette décision.</p>
           <div class="list" id="con-list"></div>
-          <button class="add-item" data-add="con">+ Ajouter un inconvénient</button>
         </section>
 
         <!-- 5. Pondération inconvénients -->
@@ -269,10 +281,20 @@
       </div>
     </div>
 
-    <!-- Navigation (uniquement en parcours) -->
-    <div class="footer" id="footer" style="display:none;">
-      <button class="btn btn-secondary" id="prev-btn">Précédent</button>
-      <button class="btn btn-primary" id="next-btn">Suivant</button>
+    <!-- Barre inférieure : composer (écrans 2 & 4) + navigation -->
+    <div class="bottombar" id="bottombar" style="display:none;">
+      <div class="bottombar-inner">
+        <div class="composer" id="composer" style="display:none;">
+          <input type="text" id="composer-input" placeholder="Ajouter un avantage" enterkeyhint="done" />
+          <button class="composer-send" id="composer-send" aria-label="Ajouter">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+        <div class="footer" id="footer">
+          <button class="btn btn-secondary" id="prev-btn">Précédent</button>
+          <button class="btn btn-primary" id="next-btn">Suivant</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -396,13 +418,14 @@
     }
 
     // --- Items ---
-    function addItem(type) {
-      const item = { id: uid(), text: "", score: 3 };
-      listOf(type).push(item);
+    // Ajout via le composer : on crée l'élément avec le texte saisi
+    function addItemWithText(type, text) {
+      const t = text.trim();
+      if (!t) return false;
+      listOf(type).push({ id: uid(), text: t, score: 3 });
       commit();
       renderLists();
-      const el = document.querySelector('[data-id="' + item.id + '"] input');
-      if (el) el.focus();
+      return true;
     }
     function updateText(type, id, text) {
       const it = listOf(type).find(i => i.id === id);
@@ -486,6 +509,11 @@
     function renderOneList(type, containerId) {
       const box = document.getElementById(containerId);
       box.innerHTML = "";
+      if (!listOf(type).length) {
+        box.innerHTML = '<p class="empty">' +
+          (type === "pro" ? "Aucun avantage pour l'instant." : "Aucun inconvénient pour l'instant.") +
+          '<br>Ajoutez-en un ci-dessous.</p>';
+      }
       listOf(type).forEach(item => {
         const row = document.createElement("div");
         row.className = "list-item";
@@ -623,7 +651,7 @@
       const inFlow = store.view === "flow" && current();
       document.getElementById("view-home").classList.toggle("active", !inFlow);
       document.getElementById("view-flow").classList.toggle("active", !!inFlow);
-      document.getElementById("footer").style.display = inFlow ? "" : "none";
+      document.getElementById("bottombar").style.display = inFlow ? "" : "none";
       document.getElementById("progress").style.display = inFlow ? "" : "none";
       document.getElementById("brand").style.display = inFlow ? "none" : "";
 
@@ -642,7 +670,24 @@
 
       if (!inFlow) {
         document.getElementById("step-indicator").textContent = "";
+        updateBottomInset();
         return;
+      }
+
+      // Composer visible seulement sur les écrans de saisie (2 = avantages, 4 = inconvénients)
+      const composer = document.getElementById("composer");
+      const composerInput = document.getElementById("composer-input");
+      const composerType = store.step === 2 ? "pro" : store.step === 4 ? "con" : null;
+      if (composerType) {
+        composer.style.display = "";
+        if (composer.dataset.type !== composerType) {
+          composerInput.value = "";
+          composer.dataset.type = composerType;
+        }
+        composerInput.placeholder = composerType === "pro" ? "Ajouter un avantage" : "Ajouter un inconvénient";
+      } else {
+        composer.style.display = "none";
+        composer.dataset.type = "";
       }
 
       document.getElementById("step-indicator").textContent = "Étape " + store.step + " / " + TOTAL_STEPS;
@@ -660,6 +705,30 @@
       prev.style.flex = "0 0 auto";
       next.style.display = "";
       next.textContent = store.step === TOTAL_STEPS ? "Terminer" : "Suivant";
+
+      updateBottomInset();
+    }
+
+    // La barre inférieure est en position fixe : on réserve la place correspondante
+    // en bas du contenu pour que rien ne soit masqué derrière.
+    function updateBottomInset() {
+      const bottombar = document.getElementById("bottombar");
+      const content = document.querySelector(".content");
+      const h = bottombar.style.display === "none" ? 20 : bottombar.offsetHeight;
+      content.style.paddingBottom = h + "px";
+    }
+
+    // Clavier mobile : on remonte la barre fixe juste au-dessus du clavier (API visualViewport).
+    function handleViewport() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const bottombar = document.getElementById("bottombar");
+      const keyboard = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      bottombar.style.transform = "translateY(" + (-keyboard) + "px)";
+    }
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewport);
+      window.visualViewport.addEventListener("scroll", handleViewport);
     }
 
     function render() {
@@ -696,9 +765,23 @@
     });
     document.getElementById("prev-btn").addEventListener("click", () => goto(store.step - 1));
 
-    document.addEventListener("click", e => {
-      const add = e.target.closest("[data-add]");
-      if (add) addItem(add.dataset.add);
+    // Composer : ajout d'un avantage / inconvénient
+    function submitComposer() {
+      const composer = document.getElementById("composer");
+      const input = document.getElementById("composer-input");
+      const type = composer.dataset.type;
+      if (!type) return;
+      if (addItemWithText(type, input.value)) {
+        input.value = "";
+        input.focus(); // on garde le focus pour enchaîner les ajouts
+        // afficher le nouvel élément (juste au-dessus du composer)
+        const content = document.querySelector(".content");
+        content.scrollTop = content.scrollHeight;
+      }
+    }
+    document.getElementById("composer-send").addEventListener("click", submitComposer);
+    document.getElementById("composer-input").addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); submitComposer(); }
     });
 
     document.getElementById("decision-input").addEventListener("input", e => {
