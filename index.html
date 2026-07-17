@@ -3,728 +3,474 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Balance — Aide à la décision</title>
+  <title>Balance</title>
   <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e5e5e5;
-      --text: #1a1a1a;
-      --muted: #8a8a8a;
-      --pro: #2e7d5b;
-      --pro-soft: #eaf5ef;
-      --con: #b23a48;
-      --con-soft: #fbecee;
-      --accent: #1a1a1a;
-      --radius: 12px;
+    :root{
+      --bg:#fbf9f4;
+      --card:#ede6d3;
+      --card-soft:#f3eddf;
+      --ink:#1f1c15;
+      --text:#2a251c;
+      --muted:#a1957c;
+      --border:#e4dcc7;
+      --pour:#f2a63c;
+      --pour-soft:#fbe7cf;
+      --contre:#e5563a;
+      --contre-soft:#f9ddd4;
+      --rate-a:#ffd83d;
+      --rate-b:#ff5e3d;
+      --radius:16px;
     }
-
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN",Quicksand,system-ui,-apple-system,sans-serif;
+      background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;
     }
+    .app{display:flex;flex-direction:column;height:100%;max-width:460px;margin:0 auto;background:var(--bg);}
 
-    .app {
-      display: flex;
-      flex-direction: column;
-      min-height: 100%;
-      max-width: 460px;
-      margin: 0 auto;
-      background: var(--bg);
+    /* ---- Header ---- */
+    .topbar{padding:16px 20px 0;min-height:20px;}
+    .hist-pill{
+      display:inline-flex;align-items:center;gap:6px;background:var(--card);border:none;
+      color:var(--text);font-family:inherit;font-size:13px;font-weight:600;
+      padding:8px 14px;border-radius:999px;cursor:pointer;
     }
+    .hist-pill:active{background:var(--border);}
+    .progress-track{display:flex;gap:5px;margin-bottom:14px;}
+    .progress-track .seg{flex:1;height:6px;border-radius:999px;background:var(--card);transition:background .25s;}
+    .progress-track .seg.done{background:var(--ink);}
 
-    /* Header commun */
-    .topbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 16px 20px 0;
-      min-height: 32px;
+    .toggle{display:inline-flex;background:var(--card);border-radius:999px;padding:4px;gap:2px;}
+    .toggle button{
+      display:inline-flex;align-items:center;gap:6px;border:none;background:none;cursor:pointer;font-family:inherit;
+      font-size:13px;font-weight:700;color:var(--muted);padding:7px 16px;border-radius:999px;
     }
-    .topbar .brand { font-weight: 600; letter-spacing: -0.01em; font-size: 15px; }
-    .topbar .icon-btn {
-      background: none; border: none; cursor: pointer; color: var(--text);
-      width: 36px; height: 36px; margin-left: -8px; border-radius: 8px;
-      display: inline-flex; align-items: center; justify-content: center; padding: 0;
+    .toggle button.on{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(70,55,25,0.12);}
+    .toggle .ic{width:15px;height:15px;display:inline-flex;}
+
+    /* ---- Content ---- */
+    .content{flex:1;min-height:0;padding:18px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;}
+    @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+    .stage{animation:fade .2s ease;}
+
+    .quote{color:var(--muted);font-size:14px;font-style:italic;margin:14px 0 10px;}
+    h2{font-size:22px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px;}
+    .subtitle{color:var(--muted);font-size:14px;margin:0 0 20px;font-weight:600;}
+
+    /* start screen */
+    .start-center{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:26px;}
+    .mascot{width:118px;height:118px;margin-bottom:26px;}
+    .start-center h2{font-size:24px;}
+    .start-center .subtitle{margin-bottom:24px;}
+    textarea,input.deci{
+      width:100%;border:none;border-radius:var(--radius);background:var(--card);
+      padding:16px;font-family:inherit;font-size:16px;color:var(--text);resize:none;font-weight:600;
     }
-    .topbar .icon-btn:active { background: #ededed; }
-    .topbar .step-indicator { margin-left: auto; font-size: 12px; color: var(--muted); }
+    textarea::placeholder,input.deci::placeholder{color:var(--muted);font-weight:600;}
+    textarea:focus,input.deci:focus{outline:none;}
+    textarea{min-height:120px;text-align:left;}
 
-    .progress { padding: 12px 20px 0; }
-    .progress-track { display: flex; gap: 5px; }
-    .progress-track .seg { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background .2s; }
-    .progress-track .seg.done { background: var(--accent); }
+    /* lists */
+    .list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+    .list-item{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:6px 8px 6px 14px;}
+    .list-item .li-ic{flex:0 0 auto;width:18px;height:18px;display:inline-flex;}
+    .list-item input{flex:1;border:none;background:none;font-size:15px;font-family:inherit;color:var(--text);padding:10px 0;font-weight:600;}
+    .list-item input:focus{outline:none;}
+    .li-del{flex:0 0 auto;width:34px;height:34px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;}
+    .li-del:active{background:var(--border);}
+    .add-item{width:100%;border:1.6px dashed #cabf9f;border-radius:14px;background:none;padding:14px;font-size:14px;color:var(--muted);cursor:pointer;font-family:inherit;font-weight:700;}
+    .add-item:active{background:var(--card-soft);}
+    .empty{text-align:center;color:var(--muted);font-size:14px;padding:16px 0;font-weight:600;}
 
-    .content { flex: 1; padding: 24px 20px 20px; overflow-y: auto; }
+    /* rate screen */
+    .glow{position:absolute;left:50%;top:46%;width:340px;height:300px;transform:translate(-50%,-50%);
+      background:radial-gradient(closest-side, rgba(255,150,60,0.28), rgba(255,150,60,0));
+      pointer-events:none;z-index:0;}
+    .rate-wrap{position:relative;z-index:1;}
+    .arg-card{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:34px;}
+    .arg-card .li-ic{width:18px;height:18px;flex:0 0 auto;}
+    .arg-card .arg-txt{font-size:15px;font-weight:700;}
+    .bubble{display:block;width:max-content;margin:0 auto 14px;background:var(--bg);border-radius:16px;
+      padding:8px 18px;font-size:26px;font-weight:800;color:var(--text);box-shadow:0 4px 14px rgba(70,55,25,0.12);position:relative;}
+    .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%) rotate(45deg);
+      width:14px;height:14px;background:var(--bg);border-radius:3px;box-shadow:3px 3px 8px rgba(70,55,25,0.06);}
+    .rating{display:flex;gap:5px;justify-content:center;}
+    .rating .seg{flex:1;max-width:26px;height:34px;border:none;border-radius:8px;background:var(--card);cursor:pointer;padding:0;transition:transform .08s;}
+    .rating .seg:active{transform:scale(0.9);}
+    .rate-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;}
 
-    .view { display: none; }
-    .view.active { display: block; }
-    .screen { display: none; animation: fade .18s ease; }
-    .screen.active { display: block; }
-    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    /* result */
+    .verdict-card{background:var(--card);border-radius:var(--radius);padding:26px 20px;text-align:center;margin-bottom:14px;}
+    .verdict{font-size:23px;font-weight:800;margin:0 0 4px;letter-spacing:-0.01em;}
+    .verdict.pour{color:var(--pour);} .verdict.contre{color:var(--contre);}
+    .verdict-sub{font-size:14px;color:var(--muted);margin:0;font-weight:600;}
+    .balance-bar{display:flex;height:34px;border-radius:999px;overflow:hidden;margin:22px 0 10px;background:var(--card-soft);}
+    .balance-bar .bp{background:linear-gradient(90deg,var(--rate-a),var(--pour));transition:width .35s;}
+    .balance-bar .bc{background:linear-gradient(90deg,var(--contre),var(--rate-b));transition:width .35s;}
+    .balance-legend{display:flex;justify-content:space-between;font-size:13px;font-weight:800;}
+    .balance-legend .lp{color:var(--pour);} .balance-legend .lc{color:var(--contre);}
+    .score-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .score-box{border-radius:14px;padding:16px;text-align:center;background:var(--card);}
+    .score-box .num{font-size:26px;font-weight:800;}
+    .score-box.pour .num{color:var(--pour);} .score-box.contre .num{color:var(--contre);}
+    .score-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;font-weight:700;}
+    .breakdown h4{font-size:12px;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin:16px 0 8px;font-weight:800;}
+    .bd-row{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:11px 14px;margin-bottom:7px;background:var(--card);border-radius:12px;font-weight:600;}
+    .bd-row .bd-score{font-weight:800;color:var(--muted);white-space:nowrap;}
 
-    .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 0 0 6px; font-weight: 600; }
-    .eyebrow.pro { color: var(--pro); }
-    .eyebrow.con { color: var(--con); }
+    /* history */
+    .home-title{font-size:24px;font-weight:800;margin:6px 0 4px;letter-spacing:-0.01em;}
+    .home-sub{font-size:14px;color:var(--muted);margin:0 0 22px;font-weight:600;}
+    .new-btn{width:100%;border:none;border-radius:var(--radius);background:var(--ink);color:#fff;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:26px;}
+    .new-btn:active{opacity:.9;}
+    .history-label{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:800;margin:0 0 12px;}
+    .card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;}
+    .card:active{background:var(--border);}
+    .card-body{flex:1;min-width:0;}
+    .card-title{font-size:16px;font-weight:800;margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+    .card-title.empty{color:var(--muted);font-weight:700;font-style:italic;}
+    .card-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700;}
+    .chip{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;}
+    .chip.pour{background:var(--pour-soft);color:#b5722a;}
+    .chip.contre{background:var(--contre-soft);color:#b8402a;}
+    .chip.eq{background:var(--card-soft);color:var(--muted);}
+    .chip.empty{background:var(--card-soft);color:var(--muted);}
+    .card-del{flex:0 0 auto;width:32px;height:32px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;}
+    .card-del:active{background:var(--border);}
+    .home-empty{text-align:center;color:var(--muted);font-size:14px;padding:40px 10px;font-weight:600;}
 
-    h1.home-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 4px 0 2px; }
-    h2 { font-size: 22px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.02em; }
-    .subtitle { font-size: 14px; color: var(--muted); margin: 0 0 22px; }
-
-    textarea, input[type="text"] {
-      width: 100%; border: 1px solid var(--border); border-radius: var(--radius);
-      background: var(--surface); padding: 14px; font-family: inherit; font-size: 16px; color: var(--text); resize: none;
-    }
-    textarea:focus, input[type="text"]:focus { outline: none; border-color: #9a9a9a; }
-    textarea { min-height: 130px; }
-
-    .recall { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 20px; }
-    .recall .lbl { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 2px; }
-    .recall .val { font-size: 15px; }
-
-    /* ---- Accueil / historique ---- */
-    .home-head { margin-bottom: 20px; }
-    .home-sub { font-size: 14px; color: var(--muted); margin: 0; }
-
-    .new-btn {
-      width: 100%; border: none; border-radius: var(--radius); background: var(--accent); color: #fff;
-      padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; margin-bottom: 24px;
-    }
-    .new-btn:active { background: #333; }
-
-    .history-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin: 0 0 12px; }
-
-    .card {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 16px; margin-bottom: 12px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px;
-    }
-    .card:active { border-color: #c8c8c8; }
-    .card .card-body { flex: 1; min-width: 0; }
-    .card .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .card .card-title.empty { color: var(--muted); font-weight: 500; font-style: italic; }
-    .card .card-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .chip { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
-    .chip.pro { background: var(--pro-soft); color: var(--pro); }
-    .chip.con { background: var(--con-soft); color: var(--con); }
-    .chip.eq { background: #eee; color: var(--muted); }
-    .chip.empty { background: #f2f2f2; color: var(--muted); }
-    .card .card-del {
-      flex: 0 0 auto; width: 34px; height: 34px; border: none; background: none;
-      color: var(--muted); font-size: 20px; cursor: pointer; border-radius: 8px; line-height: 1;
-    }
-    .card .card-del:active { background: #f0f0f0; color: var(--con); }
-
-    .home-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 10px; }
-
-    /* ---- Listes (écrans 2 & 4) ---- */
-    .list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-    .list-item { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px 4px 4px 14px; }
-    .list-item input { flex: 1; border: none; background: none; font-size: 16px; font-family: inherit; color: var(--text); padding: 12px 0; }
-    .list-item input:focus { outline: none; }
-    .del-btn { flex: 0 0 auto; width: 40px; height: 40px; border: none; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; border-radius: 8px; }
-    .del-btn:active { background: #f0f0f0; color: var(--con); }
-    .add-item { width: 100%; border: 1.5px dashed var(--border); border-radius: var(--radius); background: none; padding: 14px; font-size: 15px; color: var(--muted); cursor: pointer; font-family: inherit; font-weight: 500; }
-    .add-item:active { border-color: #9a9a9a; color: var(--text); }
-    .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 20px 0; font-style: italic; }
-
-    /* ---- Pondération (écrans 3 & 5) ---- */
-    .weight-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
-    .weight-item .wi-text { font-size: 16px; font-weight: 500; margin-bottom: 14px; }
-    .scale { display: flex; gap: 8px; }
-    .scale button { flex: 1; height: 46px; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; font-size: 16px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; }
-    .scale.pro button.on { background: var(--pro); border-color: var(--pro); color: #fff; }
-    .scale.con button.on { background: var(--con); border-color: var(--con); color: #fff; }
-    .scale-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 7px; }
-
-    /* ---- Résultat (écran 6) ---- */
-    .verdict-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 20px; text-align: center; margin-bottom: 16px; }
-    .verdict { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; }
-    .verdict.pro { color: var(--pro); }
-    .verdict.con { color: var(--con); }
-    .verdict-sub { font-size: 14px; color: var(--muted); margin: 0; }
-    .balance-bar { display: flex; height: 36px; border-radius: 10px; overflow: hidden; margin: 22px 0 10px; background: #eee; }
-    .balance-bar .bp { background: var(--pro); transition: width .3s; }
-    .balance-bar .bc { background: var(--con); transition: width .3s; }
-    .balance-legend { display: flex; justify-content: space-between; font-size: 13px; }
-    .balance-legend .lp { color: var(--pro); font-weight: 600; }
-    .balance-legend .lc { color: var(--con); font-weight: 600; }
-    .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-    .score-box { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; background: var(--surface); }
-    .score-box .num { font-size: 26px; font-weight: 700; }
-    .score-box.pro .num { color: var(--pro); }
-    .score-box.con .num { color: var(--con); }
-    .score-box .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    .breakdown h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 18px 0 8px; }
-    .bd-row { display: flex; justify-content: space-between; font-size: 14px; padding: 7px 0; border-bottom: 1px solid var(--border); }
-    .bd-row .bd-score { font-weight: 600; color: var(--muted); }
-
-    /* ---- Footer ---- */
-    .footer { display: flex; gap: 10px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--border); position: sticky; bottom: 0; }
-    .btn { border: none; border-radius: var(--radius); padding: 15px 18px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .btn-primary { flex: 1; background: var(--accent); color: #fff; }
-    .btn-primary:active { background: #333; }
-    .btn-secondary { flex: 0 0 auto; background: var(--surface); border: 1px solid var(--border); color: var(--text); }
-    .btn-secondary:active { background: #f0f0f0; }
+    /* footer */
+    .footer{display:flex;gap:10px;padding:14px 20px calc(16px + env(safe-area-inset-bottom));background:var(--bg);}
+    .btn{border:none;border-radius:var(--radius);padding:16px 18px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
+    .btn:active{opacity:.9;}
+    .btn-primary{flex:1;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+    .btn-circle{flex:0 0 auto;width:54px;background:var(--bg);border:1.5px solid var(--border);color:var(--text);display:inline-flex;align-items:center;justify-content:center;}
+    .btn-circle:active{background:var(--card-soft);}
   </style>
 </head>
 <body>
   <div class="app">
-    <!-- Header -->
-    <div class="topbar" id="topbar">
-      <button class="icon-btn" id="menu-btn" aria-label="Historique">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-          <line x1="9" y1="4" x2="9" y2="20"></line>
-        </svg>
-      </button>
-      <span class="brand" id="brand">Balance</span>
-      <span class="step-indicator" id="step-indicator"></span>
-    </div>
-    <div class="progress" id="progress" style="display:none;">
-      <div class="progress-track" id="progress-track"></div>
-    </div>
-
-    <div class="content">
-
-      <!-- ====== VUE ACCUEIL ====== -->
-      <div class="view" id="view-home">
-        <div class="home-head">
-          <h1 class="home-title">Vos décisions</h1>
-          <p class="home-sub">Pesez le pour et le contre, et reprenez vos questionnements quand vous voulez.</p>
-        </div>
-        <button class="new-btn" id="new-decision-btn">+ Nouvelle décision</button>
-        <p class="history-label" id="history-label">Historique</p>
-        <div id="history-list"></div>
-      </div>
-
-      <!-- ====== VUE PARCOURS ====== -->
-      <div class="view" id="view-flow">
-
-        <!-- 1. Problématique -->
-        <section class="screen" data-step="1">
-          <p class="eyebrow">La décision</p>
-          <h2>Quelle est votre problématique ?</h2>
-          <p class="subtitle">Formulez la décision à prendre en une phrase.</p>
-          <textarea id="decision-input" placeholder="Ex : Est-ce que je devrais accepter ce nouveau poste ?"></textarea>
-        </section>
-
-        <!-- 2. Liste avantages -->
-        <section class="screen" data-step="2">
-          <div class="recall"><span class="lbl">Décision</span><span class="val" id="recall-1">—</span></div>
-          <p class="eyebrow pro">Le pour</p>
-          <h2>Les avantages</h2>
-          <p class="subtitle">Listez tout ce qui plaide en faveur de cette décision.</p>
-          <div class="list" id="pro-list"></div>
-          <button class="add-item" data-add="pro">+ Ajouter un avantage</button>
-        </section>
-
-        <!-- 3. Pondération avantages -->
-        <section class="screen" data-step="3">
-          <p class="eyebrow pro">Le pour</p>
-          <h2>Importance des avantages</h2>
-          <p class="subtitle">Notez chaque avantage de 1 (mineur) à 5 (déterminant).</p>
-          <div id="pro-weights"></div>
-        </section>
-
-        <!-- 4. Liste inconvénients -->
-        <section class="screen" data-step="4">
-          <div class="recall"><span class="lbl">Décision</span><span class="val" id="recall-2">—</span></div>
-          <p class="eyebrow con">Le contre</p>
-          <h2>Les inconvénients</h2>
-          <p class="subtitle">Listez tout ce qui plaide contre cette décision.</p>
-          <div class="list" id="con-list"></div>
-          <button class="add-item" data-add="con">+ Ajouter un inconvénient</button>
-        </section>
-
-        <!-- 5. Pondération inconvénients -->
-        <section class="screen" data-step="5">
-          <p class="eyebrow con">Le contre</p>
-          <h2>Importance des inconvénients</h2>
-          <p class="subtitle">Notez chaque inconvénient de 1 (mineur) à 5 (rédhibitoire).</p>
-          <div id="con-weights"></div>
-        </section>
-
-        <!-- 6. Total -->
-        <section class="screen" data-step="6">
-          <div class="recall"><span class="lbl">Décision</span><span class="val" id="recall-3">—</span></div>
-          <div class="verdict-card">
-            <p class="verdict" id="verdict">—</p>
-            <p class="verdict-sub" id="verdict-sub"></p>
-            <div class="balance-bar"><div class="bp" id="bar-pro"></div><div class="bc" id="bar-con"></div></div>
-            <div class="balance-legend"><span class="lp" id="legend-pro">Pour 0</span><span class="lc" id="legend-con">Contre 0</span></div>
-          </div>
-          <div class="score-grid">
-            <div class="score-box pro"><div class="num" id="score-pro">0</div><div class="lbl">Poids du pour</div></div>
-            <div class="score-box con"><div class="num" id="score-con">0</div><div class="lbl">Poids du contre</div></div>
-          </div>
-          <div class="breakdown" id="breakdown"></div>
-        </section>
-
-      </div>
-    </div>
-
-    <!-- Navigation (uniquement en parcours) -->
-    <div class="footer" id="footer" style="display:none;">
-      <button class="btn btn-secondary" id="prev-btn">Précédent</button>
-      <button class="btn btn-primary" id="next-btn">Suivant</button>
-    </div>
+    <header class="topbar" id="topbar"></header>
+    <main class="content" id="content"></main>
+    <footer class="footer" id="footer"></footer>
   </div>
 
   <script>
-    const STORAGE_KEY = "balance.store.v3";
-    const OLD_KEY = "balance.decision.v2";
-    const TOTAL_STEPS = 6;
+    const STORAGE_KEY = "balance.store.v4";
+    const OLD_V3 = "balance.store.v3";
+    const MAX_SCORE = 10;
 
-    // Store persistant. La vue et la position sont aussi mémorisées pour reprendre où on en était.
-    const defaultStore = { decisions: [], currentId: null, step: 1, view: "flow" };
+    // ---------- Icônes ----------
+    const IC = {
+      history:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>',
+      sparkle:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="#f2a63c"><path d="M12 2c.5 4.5 2.5 6.5 8 8-5.5 1.5-7.5 3.5-8 8-.5-4.5-2.5-6.5-8-8 5.5-1.5 7.5-3.5 8-8z"/></svg>',
+      flag:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="#e5563a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h11l-1.5 3.5L16 11H5" fill="#e5563a" stroke="none"/></svg>',
+      close:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+      arrow:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+      back:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>'
+    };
+    const MASCOT = '<svg class="mascot" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">'
+      +'<defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd83d"/><stop offset="1" stop-color="#ff5e3d"/></linearGradient></defs>'
+      +'<path d="M64 14c3 24 12 33 40 38-28 5-37 14-40 38-3-24-12-33-40-38 28-5 37-14 40-38z" fill="url(#mg)"/>'
+      +'<path d="M26 20c1 8 4 11 13 13-9 2-12 5-13 13-1-8-4-11-13-13 9-2 12-5 13-13z" fill="#ffca3a"/>'
+      +'<circle cx="98" cy="86" r="6" fill="#ff8a3d"/></svg>';
 
+    // ---------- Store ----------
+    const defaultStore = { decisions:[], currentId:null, cursor:{stage:"start"}, view:"flow" };
     let storageOk = true;
-    try { localStorage.setItem("__t__", "1"); localStorage.removeItem("__t__"); }
-    catch (e) { storageOk = false; }
-
+    try{ localStorage.setItem("__t__","1"); localStorage.removeItem("__t__"); }catch(e){ storageOk=false; }
     let store = load();
 
-    function load() {
-      if (storageOk) {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) return Object.assign({}, defaultStore, JSON.parse(raw));
-          // migration depuis l'ancienne version mono-décision
-          const old = localStorage.getItem(OLD_KEY);
-          if (old) {
-            const o = JSON.parse(old);
-            const migrated = JSON.parse(JSON.stringify(defaultStore));
-            migrated.decisions.push({
-              id: uid(), title: o.decision || "", pros: o.pros || [], cons: o.cons || [],
-              created: Date.now(), updated: Date.now()
-            });
-            return migrated;
-          }
-        } catch (e) {}
+    function load(){
+      if(storageOk){
+        try{
+          const raw=localStorage.getItem(STORAGE_KEY);
+          if(raw) return Object.assign({},defaultStore,JSON.parse(raw));
+          const v3=localStorage.getItem(OLD_V3);
+          if(v3){ const o=JSON.parse(v3); const m=JSON.parse(JSON.stringify(defaultStore)); m.decisions=(o.decisions||[]); return m; }
+        }catch(e){}
       }
       return JSON.parse(JSON.stringify(defaultStore));
     }
-    function save() {
-      if (!storageOk) return;
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
-      catch (e) { storageOk = false; }
-    }
-    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+    function save(){ if(!storageOk) return; try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(store)); }catch(e){ storageOk=false; } }
+    function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
-    // --- Accès à la décision courante ---
-    function current() { return store.decisions.find(d => d.id === store.currentId) || null; }
-    function commit() { const d = current(); if (d) d.updated = Date.now(); save(); }
-    function listOf(type) { const d = current(); return d ? (type === "pro" ? d.pros : d.cons) : []; }
-    function named(list) { return list.filter(i => i.text.trim() !== ""); }
-    // Une décision est « vide » si rien de significatif n'a été saisi
-    function isEmptyDecision(d) {
-      return d.title.trim() === "" && named(d.pros).length === 0 && named(d.cons).length === 0;
-    }
-    function pruneEmpty() {
-      store.decisions = store.decisions.filter(d => d.id === store.currentId || !isEmptyDecision(d));
-    }
+    function current(){ return store.decisions.find(d=>d.id===store.currentId)||null; }
+    function commit(){ const d=current(); if(d) d.updated=Date.now(); save(); }
+    function sideList(d,side){ return side==="pro"?d.pros:d.cons; }
+    function named(list){ return list.filter(i=>i.text.trim()!==""); }
+    function isEmptyDecision(d){ return d.title.trim()==="" && named(d.pros).length===0 && named(d.cons).length===0; }
+    function pruneEmpty(){ store.decisions=store.decisions.filter(d=>d.id===store.currentId||!isEmptyDecision(d)); }
 
-    function totalsOf(d) {
-      const pro = named(d.pros).reduce((s, i) => s + (i.score || 0), 0);
-      const con = named(d.cons).reduce((s, i) => s + (i.score || 0), 0);
-      return { pro, con };
+    function totalsOf(d){
+      const pro=named(d.pros).reduce((s,i)=>s+(i.score||0),0);
+      const con=named(d.cons).reduce((s,i)=>s+(i.score||0),0);
+      return {pro,con};
     }
-    function verdictOf(d) {
-      const { pro, con } = totalsOf(d);
-      if (pro + con === 0) return { label: "À compléter", cls: "empty" };
-      const diff = pro - con;
-      if (diff > 0) return { label: "Plutôt pour", cls: "pro" };
-      if (diff < 0) return { label: "Plutôt contre", cls: "con" };
-      return { label: "Équilibré", cls: "eq" };
+    function verdictOf(d){
+      const {pro,con}=totalsOf(d);
+      if(pro+con===0) return {label:"À compléter",cls:"empty"};
+      if(pro>con) return {label:"Plutôt pour",cls:"pour"};
+      if(con>pro) return {label:"Plutôt contre",cls:"contre"};
+      return {label:"Équilibré",cls:"eq"};
     }
-    function fmtDate(ts) {
-      try { return new Date(ts).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }); }
-      catch (e) { return ""; }
-    }
+    function fmtDate(ts){ try{ return new Date(ts).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}); }catch(e){ return ""; } }
+    function rateColor(i){ const t=(i-1)/(MAX_SCORE-1); const g=Math.round(216-t*(216-94)); return "rgb(255,"+g+",61)"; }
 
-    // --- Actions décisions ---
-    function newDecision() {
-      const d = { id: uid(), title: "", pros: [], cons: [], created: Date.now(), updated: Date.now() };
-      store.decisions.push(d);
-      store.currentId = d.id;
-      store.step = 1;
-      store.view = "flow";
-      save();
-      render();
-      const ta = document.getElementById("decision-input");
-      if (ta) ta.focus();
+    // ---------- Flux dynamique ----------
+    function buildFlow(d){
+      const f=[{stage:"start"},{stage:"list",side:"pro"}];
+      named(d.pros).forEach(it=>f.push({stage:"rate",side:"pro",id:it.id}));
+      f.push({stage:"list",side:"con"});
+      named(d.cons).forEach(it=>f.push({stage:"rate",side:"con",id:it.id}));
+      f.push({stage:"result"});
+      return f;
     }
-    function openDecision(id) {
-      store.currentId = id;
-      store.step = 1;
-      store.view = "flow";
-      save();
-      render();
+    function sameCursor(a,b){ return a.stage===b.stage && (a.side||null)===(b.side||null) && (a.id||null)===(b.id||null); }
+    function flowInfo(){ const d=current(); const f=buildFlow(d); const i=f.findIndex(c=>sameCursor(c,store.cursor)); return {f,i}; }
+    function setCursor(cur){ store.cursor=cur; save(); render(); document.getElementById("content").scrollTop=0; }
+    function goNext(){ const {f,i}=flowInfo(); if(i<0){ setCursor(f[0]); return;} if(i<f.length-1) setCursor(f[i+1]); else finishToHistory(); }
+    function goPrev(){ const {f,i}=flowInfo(); if(i>0) setCursor(f[i-1]); }
+
+    // ---------- Décisions ----------
+    function newDecision(){
+      const d={id:uid(),title:"",pros:[],cons:[],created:Date.now(),updated:Date.now()};
+      store.decisions.push(d); store.currentId=d.id; store.cursor={stage:"start"}; store.view="flow";
+      save(); render();
+      const ta=document.getElementById("decision-input"); if(ta) ta.focus();
     }
-    function deleteDecision(id) {
-      if (!confirm("Supprimer définitivement cette décision ?")) return;
-      store.decisions = store.decisions.filter(d => d.id !== id);
-      if (store.currentId === id) store.currentId = null;
-      save();
-      render();
+    function openDecision(id){ store.currentId=id; store.cursor={stage:"start"}; store.view="flow"; save(); render(); }
+    function deleteDecision(id){
+      if(!confirm("Supprimer définitivement cette décision ?")) return;
+      store.decisions=store.decisions.filter(d=>d.id!==id);
+      if(store.currentId===id) store.currentId=null;
+      save(); render();
     }
-    // Ouvrir l'historique depuis le parcours (on garde la décision en cours pour pouvoir y revenir)
-    function openHistory() {
-      pruneEmpty();
-      store.view = "history";
-      save();
-      render();
+    function openHistory(){ pruneEmpty(); store.view="history"; save(); render(); }
+    function returnToFlow(){ if(current()){ store.view="flow"; save(); render(); } else newDecision(); }
+    function finishToHistory(){ store.currentId=null; pruneEmpty(); store.view="history"; save(); render(); }
+
+    // ---------- Items ----------
+    function addItem(side){
+      const it={id:uid(),text:"",score:5};
+      sideList(current(),side).push(it); commit(); render();
+      const el=document.querySelector('[data-id="'+it.id+'"] input'); if(el) el.focus();
     }
-    // Revenir de l'historique vers le parcours (ou démarrer une nouvelle décision si besoin)
-    function returnToFlow() {
-      if (current()) { store.view = "flow"; save(); render(); }
-      else newDecision();
-    }
-    // Terminer : la décision est sauvegardée, on affiche l'historique
-    function finishToHistory() {
-      store.currentId = null;
-      pruneEmpty(); // on ne conserve pas les décisions restées vides
-      store.view = "history";
-      save();
-      render();
+    function updateText(side,id,text){ const it=sideList(current(),side).find(i=>i.id===id); if(it){ it.text=text; commit(); } }
+    function deleteItem(side,id){ const d=current(); if(side==="pro") d.pros=d.pros.filter(i=>i.id!==id); else d.cons=d.cons.filter(i=>i.id!==id); commit(); render(); }
+    function setScore(side,id,score){ const it=sideList(current(),side).find(i=>i.id===id); if(it){ it.score=score; commit(); render(); } }
+
+    // ---------- Rendu ----------
+    const $ = (t,c,h)=>{ const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+
+    function render(){
+      const inFlow = store.view==="flow" && current();
+      if(inFlow) renderFlow(); else renderHistory();
     }
 
-    // --- Items ---
-    function addItem(type) {
-      const item = { id: uid(), text: "", score: 3 };
-      listOf(type).push(item);
-      commit();
-      renderLists();
-      const el = document.querySelector('[data-id="' + item.id + '"] input');
-      if (el) el.focus();
-    }
-    function updateText(type, id, text) {
-      const it = listOf(type).find(i => i.id === id);
-      if (it) { it.text = text; commit(); }
-    }
-    function updateScore(type, id, score) {
-      const it = listOf(type).find(i => i.id === id);
-      if (it) { it.score = score; commit(); renderWeights(); }
-    }
-    function deleteItem(type, id) {
-      const d = current(); if (!d) return;
-      if (type === "pro") d.pros = d.pros.filter(i => i.id !== id);
-      else d.cons = d.cons.filter(i => i.id !== id);
-      commit();
-      renderLists();
-    }
-
-    // --- Rendu historique ---
-    function renderHome() {
-      const listBox = document.getElementById("history-list");
-      const label = document.getElementById("history-label");
-      listBox.innerHTML = "";
-      // On n'affiche que les décisions ayant un contenu (la nouvelle décision en cours, encore vide, n'apparaît pas)
-      const decisions = store.decisions
-        .filter(d => !isEmptyDecision(d))
-        .sort((a, b) => b.updated - a.updated);
-
-      if (!decisions.length) {
-        label.style.display = "none";
-        listBox.innerHTML = '<div class="home-empty">Aucune décision pour l\'instant.<br>Créez-en une pour commencer.</div>';
-        return;
-      }
-      label.style.display = "";
-
-      decisions.forEach(d => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.addEventListener("click", e => {
-          if (e.target.closest(".card-del")) return;
-          openDecision(d.id);
-        });
-
-        const body = document.createElement("div");
-        body.className = "card-body";
-
-        const title = document.createElement("div");
-        const t = d.title.trim();
-        title.className = "card-title" + (t ? "" : " empty");
-        title.textContent = t || "Décision sans titre";
-
-        const meta = document.createElement("div");
-        meta.className = "card-meta";
-        const v = verdictOf(d);
-        const chip = document.createElement("span");
-        chip.className = "chip " + v.cls;
-        chip.textContent = v.label;
-        const counts = document.createElement("span");
-        counts.textContent = named(d.pros).length + " pour · " + named(d.cons).length + " contre";
-        const date = document.createElement("span");
-        date.textContent = fmtDate(d.updated);
-        meta.appendChild(chip);
-        meta.appendChild(counts);
-        meta.appendChild(date);
-
-        body.appendChild(title);
-        body.appendChild(meta);
-
-        const del = document.createElement("button");
-        del.className = "card-del";
-        del.innerHTML = "&times;";
-        del.setAttribute("aria-label", "Supprimer");
-        del.addEventListener("click", () => deleteDecision(d.id));
-
-        card.appendChild(body);
-        card.appendChild(del);
-        listBox.appendChild(card);
+    function toggleEl(activeSide){
+      const wrap=$("div","toggle");
+      [["pro","POUR",IC.sparkle],["con","CONTRE",IC.flag]].forEach(function(t){
+        const side=t[0], label=t[1], ic=t[2];
+        const b=$("button",side===activeSide?"on":"");
+        b.innerHTML='<span class="ic">'+ic+'</span>'+label;
+        b.addEventListener("click",()=>{ if(side!==activeSide) setCursor({stage:"list",side:side}); });
+        wrap.appendChild(b);
       });
+      return wrap;
+    }
+    function progressEl(){
+      const info=flowInfo(); const track=$("div","progress-track");
+      info.f.forEach((c,idx)=>track.appendChild($("div","seg"+(idx<=info.i?" done":""))));
+      return track;
     }
 
-    // --- Rendu listes ---
-    function renderOneList(type, containerId) {
-      const box = document.getElementById(containerId);
-      box.innerHTML = "";
-      listOf(type).forEach(item => {
-        const row = document.createElement("div");
-        row.className = "list-item";
-        row.setAttribute("data-id", item.id);
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = item.text;
-        input.placeholder = type === "pro" ? "Un avantage…" : "Un inconvénient…";
-        input.addEventListener("input", e => updateText(type, item.id, e.target.value));
-        const del = document.createElement("button");
-        del.className = "del-btn";
-        del.innerHTML = "&times;";
-        del.setAttribute("aria-label", "Supprimer");
-        del.addEventListener("click", () => deleteItem(type, item.id));
-        row.appendChild(input);
+    function renderFlow(){
+      const d=current();
+      const info=flowInfo();
+      const cur = info.i<0 ? info.f[0] : store.cursor;
+      if(info.i<0) store.cursor=cur;
+      const stage=cur.stage;
+      const top=document.getElementById("topbar");
+      const content=document.getElementById("content");
+      const foot=document.getElementById("footer");
+      top.innerHTML=""; content.innerHTML=""; foot.innerHTML="";
+
+      // Header
+      if(stage==="start"){
+        const pill=$("button","hist-pill",IC.history+"<span>Historique</span>");
+        pill.addEventListener("click",openHistory);
+        top.appendChild(pill);
+      } else {
+        top.appendChild(progressEl());
+        if(stage==="list"||stage==="rate") top.appendChild(toggleEl(cur.side));
+      }
+
+      // Body
+      const body=$("div","stage");
+      if(stage==="start") body.appendChild(renderStart(d));
+      else if(stage==="list") body.appendChild(renderList(d,cur.side));
+      else if(stage==="rate") body.appendChild(renderRate(d,cur.side,cur.id));
+      else if(stage==="result") body.appendChild(renderResult(d));
+      content.appendChild(body);
+
+      // Footer
+      if(stage==="start"){
+        const b=$("button","btn btn-primary","Démarrer");
+        b.addEventListener("click",goNext); foot.appendChild(b);
+      } else {
+        const back=$("button","btn btn-circle",IC.back);
+        back.addEventListener("click",goPrev); foot.appendChild(back);
+        const nextLabel = stage==="result" ? "Terminer" : 'Suivant <span style="display:inline-flex">'+IC.arrow+'</span>';
+        const nx=$("button","btn btn-primary",nextLabel);
+        nx.addEventListener("click",goNext); foot.appendChild(nx);
+      }
+    }
+
+    function renderStart(d){
+      const wrap=$("div","start-center");
+      wrap.innerHTML=MASCOT;
+      wrap.appendChild($("h2",null,"Quelle est ta problématique ?"));
+      wrap.appendChild($("p","subtitle","Formule la décision à prendre en une phrase."));
+      const ta=$("textarea"); ta.id="decision-input"; ta.placeholder="Ex : Est-ce que je devrais accepter ce nouveau poste ?"; ta.value=d.title;
+      ta.addEventListener("input",e=>{ d.title=e.target.value; commit(); });
+      wrap.appendChild(ta);
+      return wrap;
+    }
+
+    function renderList(d,side){
+      const wrap=$("div");
+      if(d.title.trim()) wrap.appendChild($("p","quote","« "+d.title.trim()+" »"));
+      wrap.appendChild($("h2",null, side==="pro"
+        ? "Liste tout ce qui plaide en faveur de cette décision."
+        : "Liste tout ce qui plaide contre cette décision."));
+      const list=$("div","list");
+      const items=sideList(d,side);
+      if(!items.length) list.appendChild($("p","empty", side==="pro"?"Aucun avantage pour l'instant.":"Aucun inconvénient pour l'instant."));
+      items.forEach(it=>{
+        const row=$("div","list-item"); row.setAttribute("data-id",it.id);
+        row.appendChild($("span","li-ic", side==="pro"?IC.sparkle:IC.flag));
+        const inp=document.createElement("input"); inp.type="text"; inp.value=it.text;
+        inp.placeholder=side==="pro"?"Un avantage…":"Un inconvénient…";
+        inp.addEventListener("input",e=>updateText(side,it.id,e.target.value));
+        row.appendChild(inp);
+        const del=$("button","li-del",IC.close); del.addEventListener("click",()=>deleteItem(side,it.id));
         row.appendChild(del);
-        box.appendChild(row);
+        list.appendChild(row);
       });
-    }
-    function renderLists() {
-      if (!current()) return;
-      renderOneList("pro", "pro-list");
-      renderOneList("con", "con-list");
+      wrap.appendChild(list);
+      const add=$("button","add-item", side==="pro"?"+ ajouter un avantage":"+ ajouter un inconvénient");
+      add.addEventListener("click",()=>addItem(side));
+      wrap.appendChild(add);
+      return wrap;
     }
 
-    // --- Rendu pondération ---
-    function renderOneWeights(type, containerId) {
-      const box = document.getElementById(containerId);
-      box.innerHTML = "";
-      const items = listOf(type).filter(i => i.text.trim() !== "");
-      if (!items.length) {
-        box.innerHTML = '<p class="empty">Aucun élément à pondérer.<br>Revenez à l\'étape précédente pour en ajouter.</p>';
-        return;
+    function renderRate(d,side,id){
+      const it=sideList(d,side).find(x=>x.id===id);
+      if(!it){ setTimeout(()=>setCursor({stage:"list",side:side}),0); return $("div"); }
+      const wrap=$("div","rate-wrap");
+      wrap.appendChild($("h2",null,"Quelle importance donnes-tu à cet argument ?"));
+      const card=$("div","arg-card");
+      card.appendChild($("span","li-ic", side==="pro"?IC.sparkle:IC.flag));
+      card.appendChild($("span","arg-txt", it.text.trim()||"(sans titre)"));
+      wrap.appendChild(card);
+
+      const glow=$("div","glow");
+      const inner=$("div"); inner.style.position="relative"; inner.style.zIndex="1";
+      inner.appendChild($("span","bubble",(it.score||0)+"/"+MAX_SCORE));
+      const rating=$("div","rating");
+      for(let i=1;i<=MAX_SCORE;i++){
+        const seg=$("button","seg");
+        if(i<=(it.score||0)) seg.style.background=rateColor(i);
+        seg.addEventListener("click",()=>setScore(side,id,i));
+        rating.appendChild(seg);
       }
-      items.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "weight-item";
-        const txt = document.createElement("div");
-        txt.className = "wi-text";
-        txt.textContent = item.text.trim();
-        const scale = document.createElement("div");
-        scale.className = "scale " + type;
-        for (let i = 1; i <= 5; i++) {
-          const b = document.createElement("button");
-          b.textContent = i;
-          if (i === item.score) b.classList.add("on");
-          b.addEventListener("click", () => updateScore(type, item.id, i));
-          scale.appendChild(b);
-        }
-        const legend = document.createElement("div");
-        legend.className = "scale-legend";
-        legend.innerHTML = "<span>Mineur</span><span>Déterminant</span>";
-        card.appendChild(txt);
-        card.appendChild(scale);
-        card.appendChild(legend);
-        box.appendChild(card);
-      });
-    }
-    function renderWeights() {
-      if (!current()) return;
-      renderOneWeights("pro", "pro-weights");
-      renderOneWeights("con", "con-weights");
+      inner.appendChild(rating);
+      inner.appendChild($("div","rate-legend",'<span>Pas important</span><span>Essentiel</span>'));
+
+      const holder=$("div"); holder.style.position="relative"; holder.style.padding="10px 0";
+      holder.appendChild(glow); holder.appendChild(inner);
+      wrap.appendChild(holder);
+      return wrap;
     }
 
-    // --- Rendu résultat ---
-    function renderResult() {
-      const d = current(); if (!d) return;
-      const { pro, con } = totalsOf(d);
-      document.getElementById("score-pro").textContent = pro;
-      document.getElementById("score-con").textContent = con;
-      document.getElementById("legend-pro").textContent = "Pour " + pro;
-      document.getElementById("legend-con").textContent = "Contre " + con;
+    function renderResult(d){
+      const wrap=$("div");
+      if(d.title.trim()) wrap.appendChild($("p","quote","« "+d.title.trim()+" »"));
+      const t=totalsOf(d); const pro=t.pro, con=t.con;
+      const total=pro+con, diff=pro-con;
+      const vc=$("div","verdict-card");
+      let vlabel="Rien à peser", vcls="", vsub="Ajoute des avantages et des inconvénients pour obtenir un verdict.";
+      if(total>0 && diff>0){ vlabel="Plutôt POUR"; vcls="pour"; vsub="Les avantages l'emportent de "+diff+" point"+(diff>1?"s":"")+"."; }
+      else if(total>0 && diff<0){ vlabel="Plutôt CONTRE"; vcls="contre"; vsub="Les inconvénients l'emportent de "+(-diff)+" point"+(-diff>1?"s":"")+"."; }
+      else if(total>0){ vlabel="Équilibré"; vsub="Le pour et le contre se valent. À toi de trancher."; }
+      vc.appendChild($("p","verdict "+vcls,vlabel));
+      vc.appendChild($("p","verdict-sub",vsub));
+      const bar=$("div","balance-bar");
+      const pp=total?(pro/total*100):50;
+      const bp=$("div","bp"); bp.style.width=pp+"%"; const bc=$("div","bc"); bc.style.width=(100-pp)+"%";
+      bar.appendChild(bp); bar.appendChild(bc); vc.appendChild(bar);
+      vc.appendChild($("div","balance-legend",'<span class="lp">Pour '+pro+'</span><span class="lc">Contre '+con+'</span>'));
+      wrap.appendChild(vc);
+      const grid=$("div","score-grid");
+      grid.appendChild($("div","score-box pour",'<div class="num">'+pro+'</div><div class="lbl">Poids du pour</div>'));
+      grid.appendChild($("div","score-box contre",'<div class="num">'+con+'</div><div class="lbl">Poids du contre</div>'));
+      wrap.appendChild(grid);
+      const bd=$("div","breakdown");
+      function block(title,items){ if(!items.length) return; bd.appendChild($("h4",null,title));
+        items.forEach(it=>bd.appendChild($("div","bd-row",'<span>'+escapeHtml(it.text.trim())+'</span><span class="bd-score">'+(it.score||0)+'/'+MAX_SCORE+'</span>'))); }
+      block("Avantages",named(d.pros)); block("Inconvénients",named(d.cons));
+      wrap.appendChild(bd);
+      return wrap;
+    }
 
-      const total = pro + con;
-      const proPct = total ? (pro / total) * 100 : 50;
-      document.getElementById("bar-pro").style.width = proPct + "%";
-      document.getElementById("bar-con").style.width = (100 - proPct) + "%";
-
-      const verdict = document.getElementById("verdict");
-      const sub = document.getElementById("verdict-sub");
-      const diff = pro - con;
-      verdict.classList.remove("pro", "con");
-      if (total === 0) {
-        verdict.textContent = "Rien à peser";
-        sub.textContent = "Ajoutez des avantages et des inconvénients pour obtenir un verdict.";
-      } else if (diff > 0) {
-        verdict.textContent = "Plutôt POUR";
-        verdict.classList.add("pro");
-        sub.textContent = "Les avantages l'emportent de " + diff + " point" + (diff > 1 ? "s" : "") + ".";
-      } else if (diff < 0) {
-        verdict.textContent = "Plutôt CONTRE";
-        verdict.classList.add("con");
-        sub.textContent = "Les inconvénients l'emportent de " + (-diff) + " point" + (-diff > 1 ? "s" : "") + ".";
-      } else {
-        verdict.textContent = "Équilibré";
-        sub.textContent = "Le pour et le contre se valent. À vous de trancher.";
+    function renderHistory(){
+      const top=document.getElementById("topbar");
+      const content=document.getElementById("content");
+      const foot=document.getElementById("footer");
+      top.innerHTML=""; content.innerHTML=""; foot.innerHTML="";
+      if(current()){
+        const close=$("button","hist-pill",IC.close+"<span>Fermer</span>");
+        close.addEventListener("click",returnToFlow); top.appendChild(close);
       }
+      const body=$("div","stage");
+      body.appendChild($("h1","home-title","Vos décisions"));
+      body.appendChild($("p","home-sub","Pèse le pour et le contre, et reprends tes questionnements quand tu veux."));
+      const nb=$("button","new-btn","+ Nouvelle décision"); nb.addEventListener("click",newDecision); body.appendChild(nb);
 
-      const bd = document.getElementById("breakdown");
-      bd.innerHTML = "";
-      function block(title, items) {
-        if (!items.length) return;
-        const h = document.createElement("h4");
-        h.textContent = title;
-        bd.appendChild(h);
-        items.forEach(it => {
-          const row = document.createElement("div");
-          row.className = "bd-row";
-          const name = document.createElement("span");
-          name.textContent = it.text.trim();
-          const sc = document.createElement("span");
-          sc.className = "bd-score";
-          sc.textContent = (it.score || 0) + "/5";
-          row.appendChild(name);
-          row.appendChild(sc);
-          bd.appendChild(row);
+      const list=store.decisions.filter(d=>!isEmptyDecision(d)).sort((a,b)=>b.updated-a.updated);
+      if(!list.length){ body.appendChild($("div","home-empty","Aucune décision pour l'instant.<br>Crées-en une pour commencer.")); }
+      else{
+        body.appendChild($("p","history-label","Historique"));
+        list.forEach(d=>{
+          const card=$("div","card");
+          card.addEventListener("click",e=>{ if(e.target.closest(".card-del")) return; openDecision(d.id); });
+          const bodyc=$("div","card-body");
+          const t=d.title.trim();
+          bodyc.appendChild($("div","card-title"+(t?"":" empty"), t?escapeHtml(t):"Décision sans titre"));
+          const v=verdictOf(d);
+          bodyc.appendChild($("div","card-meta",
+            '<span class="chip '+v.cls+'">'+v.label+'</span>'+
+            '<span>'+named(d.pros).length+' pour · '+named(d.cons).length+' contre</span>'+
+            '<span>'+fmtDate(d.updated)+'</span>'));
+          card.appendChild(bodyc);
+          const del=$("button","card-del",IC.close); del.addEventListener("click",()=>deleteDecision(d.id));
+          card.appendChild(del);
+          body.appendChild(card);
         });
       }
-      block("Avantages", named(d.pros));
-      block("Inconvénients", named(d.cons));
+      content.appendChild(body);
     }
 
-    // --- Navigation parcours ---
-    function goto(step) {
-      store.step = Math.max(1, Math.min(TOTAL_STEPS, step));
-      save();
-      render();
-      document.querySelector(".content").scrollTop = 0;
-    }
+    function escapeHtml(s){ return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-    const ICON_HISTORY = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="9" y1="4" x2="9" y2="20"></line></svg>';
-    const ICON_CLOSE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
-
-    function renderChrome() {
-      const inFlow = store.view === "flow" && current();
-      document.getElementById("view-home").classList.toggle("active", !inFlow);
-      document.getElementById("view-flow").classList.toggle("active", !!inFlow);
-      document.getElementById("footer").style.display = inFlow ? "" : "none";
-      document.getElementById("progress").style.display = inFlow ? "" : "none";
-      document.getElementById("brand").style.display = inFlow ? "none" : "";
-
-      const menuBtn = document.getElementById("menu-btn");
-      if (inFlow) {
-        menuBtn.innerHTML = ICON_HISTORY;
-        menuBtn.setAttribute("aria-label", "Historique");
-        // l'icône revient uniquement si on peut retourner à une décision en cours
-        menuBtn.style.visibility = "visible";
-      } else {
-        // en historique : croix pour revenir à la décision en cours, masquée s'il n'y en a pas
-        menuBtn.innerHTML = ICON_CLOSE;
-        menuBtn.setAttribute("aria-label", "Fermer l'historique");
-        menuBtn.style.visibility = current() ? "visible" : "hidden";
-      }
-
-      if (!inFlow) {
-        document.getElementById("step-indicator").textContent = "";
-        return;
-      }
-
-      document.getElementById("step-indicator").textContent = "Étape " + store.step + " / " + TOTAL_STEPS;
-      const track = document.getElementById("progress-track");
-      track.innerHTML = "";
-      for (let i = 1; i <= TOTAL_STEPS; i++) {
-        const seg = document.createElement("div");
-        seg.className = "seg" + (i <= store.step ? " done" : "");
-        track.appendChild(seg);
-      }
-      const prev = document.getElementById("prev-btn");
-      const next = document.getElementById("next-btn");
-      // Pas de « Précédent » sur le premier écran
-      prev.style.display = store.step === 1 ? "none" : "";
-      prev.style.flex = "0 0 auto";
-      next.style.display = "";
-      next.textContent = store.step === TOTAL_STEPS ? "Terminer" : "Suivant";
-    }
-
-    function render() {
-      renderChrome();
-      if (store.view === "flow" && current()) {
-        // écran actif
-        document.querySelectorAll("#view-flow .screen").forEach(s => {
-          s.classList.toggle("active", Number(s.dataset.step) === store.step);
-        });
-        const d = current();
-        document.getElementById("decision-input").value = d.title;
-        const recall = d.title.trim() || "Aucune décision saisie";
-        ["recall-1", "recall-2", "recall-3"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.textContent = recall;
-        });
-        renderLists();
-        renderWeights();
-        renderResult();
-      } else {
-        renderHome();
-      }
-    }
-
-    // --- Événements ---
-    document.getElementById("new-decision-btn").addEventListener("click", newDecision);
-    document.getElementById("menu-btn").addEventListener("click", () => {
-      if (store.view === "flow" && current()) openHistory();
-      else returnToFlow();
-    });
-    document.getElementById("next-btn").addEventListener("click", () => {
-      if (store.step === TOTAL_STEPS) finishToHistory();
-      else goto(store.step + 1);
-    });
-    document.getElementById("prev-btn").addEventListener("click", () => goto(store.step - 1));
-
-    document.addEventListener("click", e => {
-      const add = e.target.closest("[data-add]");
-      if (add) addItem(add.dataset.add);
-    });
-
-    document.getElementById("decision-input").addEventListener("input", e => {
-      const d = current(); if (!d) return;
-      d.title = e.target.value;
-      commit();
-      const recall = d.title.trim() || "Aucune décision saisie";
-      ["recall-1", "recall-2", "recall-3"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = recall;
-      });
-    });
-
-    // Nettoyage des décisions vides laissées par une session précédente
-    store.currentId = null;
-    pruneEmpty();
-
-    // À l'arrivée, on démarre directement sur une nouvelle problématique (l'historique reste accessible par l'icône)
-    const startDecision = { id: uid(), title: "", pros: [], cons: [], created: Date.now(), updated: Date.now() };
-    store.decisions.push(startDecision);
-    store.currentId = startDecision.id;
-    store.step = 1;
-    store.view = "flow";
-    save();
-
-    render();
+    // ---------- Démarrage ----------
+    store.currentId=null; pruneEmpty();
+    const startD={id:uid(),title:"",pros:[],cons:[],created:Date.now(),updated:Date.now()};
+    store.decisions.push(startD); store.currentId=startD.id; store.cursor={stage:"start"}; store.view="flow";
+    save(); render();
   </script>
 </body>
 </html>
