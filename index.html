@@ -69,11 +69,12 @@
     .mascot{width:118px;height:118px;margin-bottom:26px;}
     .start-center h2{font-size:24px;}
     .start-center .subtitle{margin-bottom:24px;}
+    .field-error{color:var(--contre);font-size:14px;font-weight:600;text-align:center;margin-top:14px;min-height:18px;}
     textarea,input.deci{
       width:100%;border:none;border-radius:var(--radius);background:var(--card);
-      padding:16px;font-family:inherit;font-size:16px;color:var(--text);resize:none;font-weight:600;
+      padding:16px;font-family:inherit;font-size:16px;color:var(--text);resize:none;font-weight:400;
     }
-    textarea::placeholder,input.deci::placeholder{color:var(--muted);font-weight:600;}
+    textarea::placeholder,input::placeholder{color:var(--muted);font-weight:400;font-size:15px;}
     textarea:focus,input.deci:focus{outline:none;}
     textarea{min-height:120px;text-align:left;}
 
@@ -81,11 +82,11 @@
     .list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
     .list-item{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:6px 8px 6px 14px;}
     .list-item .li-ic{flex:0 0 auto;width:18px;height:18px;display:inline-flex;}
-    .list-item input{flex:1;border:none;background:none;font-size:16px;font-family:inherit;color:var(--text);padding:10px 0;font-weight:600;}
+    .list-item input{flex:1;border:none;background:none;font-size:16px;font-family:inherit;color:var(--text);padding:10px 0;font-weight:400;}
     .list-item input:focus{outline:none;}
     .li-del{flex:0 0 auto;width:34px;height:34px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;}
     .li-del:active{background:var(--border);}
-    .add-item{width:100%;border:1.6px dashed #cabf9f;border-radius:14px;background:none;padding:14px;font-size:16px;color:var(--text);cursor:pointer;font-family:inherit;font-weight:700;text-align:center;}
+    .add-item{width:100%;border:1.6px dashed var(--ink);border-radius:14px;background:none;padding:14px;font-size:16px;color:var(--text);cursor:pointer;font-family:inherit;font-weight:700;text-align:center;}
     .add-item:active{background:var(--card-soft);}
 
     /* rate screen */
@@ -149,7 +150,7 @@
     .btn:disabled{opacity:.3;cursor:default;}
     .btn:disabled:active{opacity:.3;}
     .btn-primary{flex:1;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
-    .btn-circle{flex:0 0 auto;width:54px;background:var(--bg);border:1.5px solid var(--border);color:var(--text);display:inline-flex;align-items:center;justify-content:center;}
+    .btn-circle{flex:0 0 auto;width:54px;background:var(--bg);border:1.5px solid var(--ink);color:var(--text);display:inline-flex;align-items:center;justify-content:center;}
     .btn-circle:active{background:var(--card-soft);}
 
     /* Titres en Sanchez (slab serif) */
@@ -353,9 +354,13 @@
       // Footer
       if(stage==="start"){
         const b=$("button","btn btn-primary","Démarrer");
-        b.id="start-btn";
-        b.disabled = !d.title.trim();
-        b.addEventListener("click",()=>{ if(current().title.trim()) goNext(); });
+        b.addEventListener("click",()=>{
+          if(current().title.trim()){ goNext(); }
+          else {
+            const e=document.getElementById("start-error"); if(e) e.textContent="Écris d'abord ta problématique.";
+            const ta=document.getElementById("decision-input"); if(ta) ta.focus();
+          }
+        });
         foot.appendChild(b);
       } else {
         const back=$("button","btn btn-circle",IC.back);
@@ -372,8 +377,10 @@
       wrap.appendChild($("h2",null,"Quelle est ta problématique ?"));
       wrap.appendChild($("p","subtitle","Formule la décision à prendre en une phrase."));
       const ta=$("textarea"); ta.id="decision-input"; ta.placeholder="Ex : Est-ce que je devrais accepter ce nouveau poste ?"; ta.value=d.title;
-      ta.addEventListener("input",e=>{ d.title=e.target.value; commit(); const sb=document.getElementById("start-btn"); if(sb) sb.disabled=!d.title.trim(); });
+      ta.addEventListener("input",e=>{ d.title=e.target.value; commit(); const er=document.getElementById("start-error"); if(er) er.textContent=""; });
       wrap.appendChild(ta);
+      const err=$("p","field-error"); err.id="start-error";
+      wrap.appendChild(err);
       return wrap;
     }
 
