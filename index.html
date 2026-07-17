@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Balance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sanchez&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#fbf9f4;
@@ -25,7 +30,7 @@
     html,body{height:100%;}
     body{
       margin:0;
-      font-family:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN",Quicksand,system-ui,-apple-system,sans-serif;
+      font-family:"Satoshi",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;
       background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;
     }
     .app{display:flex;flex-direction:column;height:100%;max-width:460px;margin:0 auto;background:var(--bg);}
@@ -96,7 +101,7 @@
       padding:8px 18px;font-size:26px;font-weight:800;color:var(--text);box-shadow:0 4px 14px rgba(70,55,25,0.12);position:relative;}
     .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%) rotate(45deg);
       width:14px;height:14px;background:var(--bg);border-radius:3px;box-shadow:3px 3px 8px rgba(70,55,25,0.06);}
-    .rating{display:flex;gap:5px;justify-content:center;}
+    .rating{display:flex;gap:5px;justify-content:center;touch-action:none;cursor:pointer;}
     .rating .seg{flex:1;max-width:26px;height:34px;border:none;border-radius:8px;background:var(--card);cursor:pointer;padding:0;transition:transform .08s;}
     .rating .seg:active{transform:scale(0.9);}
     .rate-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:10px;font-weight:700;}
@@ -148,6 +153,12 @@
     .btn-primary{flex:1;background:var(--ink);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
     .btn-circle{flex:0 0 auto;width:54px;background:var(--bg);border:1.5px solid var(--border);color:var(--text);display:inline-flex;align-items:center;justify-content:center;}
     .btn-circle:active{background:var(--card-soft);}
+
+    /* Titres en Sanchez (slab serif) */
+    h2,.home-title,.verdict,.bubble,.score-box .num{
+      font-family:"Sanchez",Georgia,"Times New Roman",serif;
+      font-weight:400;letter-spacing:0;
+    }
   </style>
 </head>
 <body>
@@ -176,6 +187,31 @@
       +'<path d="M64 14c3 24 12 33 40 38-28 5-37 14-40 38-3-24-12-33-40-38 28-5 37-14 40-38z" fill="url(#mg)"/>'
       +'<path d="M26 20c1 8 4 11 13 13-9 2-12 5-13 13-1-8-4-11-13-13 9-2 12-5 13-13z" fill="#ffca3a"/>'
       +'<circle cx="98" cy="86" r="6" fill="#ff8a3d"/></svg>';
+
+    // ---------- Retour haptique ----------
+    // iOS Safari (17.4+) ne supporte pas navigator.vibrate : on déclenche un léger
+    // retour via un <input switch> masqué (astuce inspirée de haptics.lochie.me).
+    // Android utilise l'API Vibration classique.
+    const Haptics = (function(){
+      let ready=false, label=null;
+      function init(){
+        if(ready) return; ready=true;
+        try{
+          label=document.createElement("label");
+          label.setAttribute("aria-hidden","true");
+          label.style.cssText="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;";
+          const inp=document.createElement("input");
+          inp.type="checkbox"; inp.setAttribute("switch","");
+          label.appendChild(inp);
+          (document.body||document.documentElement).appendChild(label);
+        }catch(e){}
+      }
+      return { tap(){
+        init();
+        try{ if(navigator.vibrate) navigator.vibrate(7); }catch(e){}
+        try{ if(label) label.click(); }catch(e){}
+      }};
+    })();
 
     // ---------- Store ----------
     const defaultStore = { decisions:[], currentId:null, cursor:{stage:"start"}, view:"flow" };
@@ -379,14 +415,37 @@
 
       const glow=$("div","glow");
       const inner=$("div"); inner.style.position="relative"; inner.style.zIndex="1";
-      inner.appendChild($("span","bubble",(it.score||0)+"/"+MAX_SCORE));
+      const bubble=$("span","bubble",(it.score||0)+"/"+MAX_SCORE);
+      inner.appendChild(bubble);
       const rating=$("div","rating");
-      for(let i=1;i<=MAX_SCORE;i++){
-        const seg=$("button","seg");
-        if(i<=(it.score||0)) seg.style.background=rateColor(i);
-        seg.addEventListener("click",()=>setScore(side,id,i));
-        rating.appendChild(seg);
+      const segs=[];
+      for(let i=1;i<=MAX_SCORE;i++){ const seg=$("button","seg"); segs.push(seg); rating.appendChild(seg); }
+
+      // Peint la barre + la bulle pour une valeur donnée (sans re-render complet)
+      function paint(v){
+        for(let i=1;i<=MAX_SCORE;i++) segs[i-1].style.background = i<=v ? rateColor(i) : "";
+        bubble.textContent = v+"/"+MAX_SCORE;
       }
+      paint(it.score||0);
+
+      // Glisser du doigt : la note suit la position horizontale
+      function valFromX(clientX){
+        const r=rating.getBoundingClientRect();
+        let ratio=(clientX-r.left)/r.width; if(ratio<0)ratio=0; if(ratio>1)ratio=1;
+        let v=Math.ceil(ratio*MAX_SCORE); if(v<1)v=1; if(v>MAX_SCORE)v=MAX_SCORE;
+        return v;
+      }
+      let dragging=false, lastV=it.score||0;
+      function applyX(clientX){
+        const v=valFromX(clientX);
+        if(v!==lastV){ lastV=v; it.score=v; paint(v); Haptics.tap(); }
+      }
+      rating.addEventListener("pointerdown",e=>{ dragging=true; try{rating.setPointerCapture(e.pointerId);}catch(_){}; applyX(e.clientX); });
+      rating.addEventListener("pointermove",e=>{ if(dragging) applyX(e.clientX); });
+      function endDrag(){ if(dragging){ dragging=false; commit(); } }
+      rating.addEventListener("pointerup",endDrag);
+      rating.addEventListener("pointercancel",endDrag);
+
       inner.appendChild(rating);
       inner.appendChild($("div","rate-legend",'<span>Pas important</span><span>Essentiel</span>'));
 
