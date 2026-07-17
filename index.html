@@ -56,15 +56,15 @@
     /* ---- Content ---- */
     .content{flex:1;min-height:0;padding:18px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;}
     @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-    .stage{animation:fade .2s ease;}
+    .stage{animation:fade .2s ease;display:flex;flex-direction:column;min-height:100%;}
 
     .quote{color:var(--text);font-size:15px;font-style:italic;margin:14px 0 12px;text-align:center;}
     h2{font-size:22px;font-weight:800;letter-spacing:-0.01em;margin:0 0 12px;text-align:center;line-height:1.15;}
     .subtitle{color:var(--text);font-size:15px;margin:0 0 20px;font-weight:600;text-align:center;}
 
     /* start screen */
-    .start-center{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:26px;}
-    .mascot{width:auto;height:120px;margin-bottom:24px;}
+    .start-center{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;justify-content:center;}
+    .mascot{width:auto;height:68px;margin-bottom:22px;}
     .start-center h2{font-size:24px;margin-bottom:2px;}
     .start-center .subtitle{margin-bottom:24px;}
     .field-error{color:var(--contre);font-size:14px;font-weight:600;text-align:center;margin-top:14px;min-height:18px;}
@@ -91,7 +91,7 @@
     .glow{position:absolute;left:50%;top:46%;width:340px;height:300px;transform:translate(-50%,-50%);
       background:radial-gradient(closest-side, rgba(255,150,60,0.28), rgba(255,150,60,0));
       pointer-events:none;z-index:0;}
-    .rate-wrap{position:relative;z-index:1;}
+    .rate-wrap{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;}
     .arg-card{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:34px;}
     .arg-card .li-ic{width:18px;height:18px;flex:0 0 auto;}
     .arg-card .arg-txt{font-size:16px;font-weight:700;color:var(--text);}
@@ -459,7 +459,7 @@
       inner.appendChild(rating);
       inner.appendChild($("div","rate-legend",'<span>Pas important</span><span>Essentiel</span>'));
 
-      const holder=$("div"); holder.style.position="relative"; holder.style.padding="10px 0";
+      const holder=$("div"); holder.style.position="relative"; holder.style.padding="10px 0"; holder.style.margin="auto 0";
       holder.appendChild(glow); holder.appendChild(inner);
       wrap.appendChild(holder);
       return wrap;
