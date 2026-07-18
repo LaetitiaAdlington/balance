@@ -152,7 +152,7 @@
     .btn-circle:active{background:var(--card-soft);}
 
     /* Titres en Sanchez (slab serif) */
-    h2,.home-title,.verdict,.bubble,.score-box .num{
+    h2,.home-title,.verdict,.bubble,.score-box .num,.toggle button{
       font-family:"Sanchez",Georgia,"Times New Roman",serif;
       font-weight:400;letter-spacing:0;
     }
@@ -259,7 +259,8 @@
     }
     function sameCursor(a,b){ return a.stage===b.stage && (a.side||null)===(b.side||null) && (a.id||null)===(b.id||null); }
     function flowInfo(){ const d=current(); const f=buildFlow(d); const i=f.findIndex(c=>sameCursor(c,store.cursor)); return {f,i}; }
-    function setCursor(cur){ store.cursor=cur; save(); render(); document.getElementById("content").scrollTop=0; }
+    let focusList=false;
+    function setCursor(cur){ store.cursor=cur; focusList=(cur.stage==="list"); save(); render(); document.getElementById("content").scrollTop=0; }
     function goNext(){ const {f,i}=flowInfo(); if(i<0){ setCursor(f[0]); return;} if(i<f.length-1) setCursor(f[i+1]); else finishToHistory(); }
     function goPrev(){ const {f,i}=flowInfo(); if(i>0) setCursor(f[i-1]); }
 
@@ -344,6 +345,8 @@
       else if(stage==="rate") body.appendChild(renderRate(d,cur.side,cur.id));
       else if(stage==="result") body.appendChild(renderResult(d));
       content.appendChild(body);
+      // Focus automatique du champ éditable à l'arrivée sur une liste
+      if(focusList && stage==="list"){ const fi=content.querySelector(".list-item input"); if(fi && fi.value===""){ fi.focus(); } focusList=false; }
 
       // Footer
       if(stage==="start"){
@@ -387,13 +390,15 @@
     }
 
     function renderList(d,side){
+      const items=sideList(d,side);
+      // À l'arrivée sur une liste vide, on crée déjà un champ éditable
+      if(items.length===0){ items.push({id:uid(),text:"",score:5}); commit(); }
       const wrap=$("div");
       if(d.title.trim()) wrap.appendChild($("p","quote","« "+d.title.trim()+" »"));
       wrap.appendChild($("h2",null, side==="pro"
         ? "Liste tout ce qui plaide en faveur de cette décision."
         : "Liste tout ce qui plaide contre cette décision."));
       const list=$("div","list");
-      const items=sideList(d,side);
       items.forEach(it=>{
         const row=$("div","list-item"); row.setAttribute("data-id",it.id);
         row.appendChild($("span","li-ic", side==="pro"?IC.sparkle:IC.flag));
