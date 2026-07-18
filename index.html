@@ -404,7 +404,12 @@
         row.appendChild($("span","li-ic", side==="pro"?IC.sparkle:IC.flag));
         const inp=document.createElement("input"); inp.type="text"; inp.value=it.text;
         inp.placeholder=side==="pro"?"Un avantage…":"Un inconvénient…";
+        inp.setAttribute("enterkeyhint","next");
         inp.addEventListener("input",e=>{ updateText(side,it.id,e.target.value); const le=document.getElementById("list-error"); if(le) le.textContent=""; });
+        // Touche « retour » du clavier : valide le champ (nouveau champ si rempli, sinon ferme)
+        inp.addEventListener("keydown",e=>{
+          if(e.key==="Enter"){ e.preventDefault(); if(inp.value.trim()!==""){ addItem(side); } else { inp.blur(); } }
+        });
         row.appendChild(inp);
         const del=$("button","li-del",IC.close); del.addEventListener("click",()=>deleteItem(side,it.id));
         row.appendChild(del);
