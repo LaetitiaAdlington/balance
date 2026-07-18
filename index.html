@@ -99,8 +99,8 @@
       padding:8px 18px;font-size:26px;font-weight:800;color:var(--text);box-shadow:0 4px 14px rgba(70,55,25,0.12);position:relative;}
     .bubble::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%) rotate(45deg);
       width:14px;height:14px;background:var(--bg);border-radius:3px;box-shadow:3px 3px 8px rgba(70,55,25,0.06);}
-    .rating{display:flex;gap:5px;justify-content:center;touch-action:none;cursor:pointer;}
-    .rating .seg{flex:1;max-width:26px;height:34px;border:none;border-radius:8px;background:var(--card);cursor:pointer;padding:0;transition:transform .08s;}
+    .rating{display:flex;gap:6px;justify-content:center;touch-action:none;cursor:pointer;background:#fff;padding:8px;border-radius:18px;box-shadow:0 2px 12px rgba(70,55,25,0.07);}
+    .rating .seg{flex:1;height:40px;border:none;border-radius:8px;background:var(--card);cursor:pointer;padding:0;transition:transform .08s;}
     .rating .seg:active{transform:scale(0.9);}
     .rate-legend{display:flex;justify-content:space-between;font-size:13px;color:var(--text);margin-top:10px;font-weight:700;}
 
@@ -246,7 +246,8 @@
       return {label:"Équilibré",cls:"eq"};
     }
     function fmtDate(ts){ try{ return new Date(ts).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}); }catch(e){ return ""; } }
-    function rateColor(i){ const t=(i-1)/(MAX_SCORE-1); const g=Math.round(216-t*(216-94)); return "rgb(255,"+g+",61)"; }
+    function rateRGB(i){ const t=(Math.max(1,i)-1)/(MAX_SCORE-1); const g=Math.round(216-t*(216-94)); return "255,"+g+",61"; }
+    function rateColor(i){ return "rgb("+rateRGB(i)+")"; }
 
     // ---------- Flux dynamique ----------
     function buildFlow(d){
@@ -445,6 +446,9 @@
       function paint(v){
         for(let i=1;i<=MAX_SCORE;i++) segs[i-1].style.background = i<=v ? rateColor(i) : "";
         bubble.textContent = v+"/"+MAX_SCORE;
+        // le halo prend la teinte de la note sélectionnée
+        const rgb=rateRGB(v);
+        glow.style.background = "radial-gradient(closest-side, rgba("+rgb+",0.34), rgba("+rgb+",0))";
       }
       paint(it.score||0);
 
