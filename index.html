@@ -378,7 +378,7 @@
       wrap.innerHTML=MASCOT;
       wrap.appendChild($("h2",null,"Quelle est ta problématique ?"));
       wrap.appendChild($("p","subtitle","Formule la décision à prendre en une phrase."));
-      const ta=$("textarea"); ta.id="decision-input"; ta.placeholder="Ex : Est-ce que je devrais accepter ce nouveau poste ?"; ta.value=d.title;
+      const ta=$("textarea"); ta.id="decision-input"; ta.placeholder="Ex : Est-ce que je devrais me débarrasser du corgi ?"; ta.value=d.title;
       ta.addEventListener("input",e=>{ d.title=e.target.value; commit(); const er=document.getElementById("start-error"); if(er) er.textContent=""; });
       wrap.appendChild(ta);
       const err=$("p","field-error"); err.id="start-error";
